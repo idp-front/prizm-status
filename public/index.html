@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Prizm status</title>
+    <link rel="stylesheet" href="https://unpkg.com/@prizm-ui/prizm-lite@0.2.0/styles.css">
+    <style>
+        body {
+            font-family: Inter;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            margin-top: 16px;
+        }
+
+        .prizm-table tr {
+            height: 24px;
+        }
+
+        .prizm-indicator {
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="prizm-card">
+        <b>Prizm status</b>
+    </div>
+    <div class="prizm-card container">
+        <table class="prizm-table">
+            <thead>
+                <tr>
+                    <th style="width: 50px; text-align: center">Status</th>
+                    <th>Link</th>
+                </tr>
+            </thead>
+            <tbody id="tbody">
+            </tbody>
+
+        </table>
+    </div>
+</body>
+
+<script type="module">
+    // Add main links
+    const mainLinks = ["https://prizm.zyfra.com", "https://prizm.site", "https://prizm.fun", "https://doc.prizm.zyfra.com", "https://lite.prizm.site"];
+
+    const tableBody = document.getElementById('tbody');
+
+    for (const link of mainLinks) {
+        tableBody.appendChild(createItem(link));
+    }
+
+
+    // Add versions
+
+    const req = await fetch("https://api.github.com/repos/zyfra/prizm/tags");
+    const data = await req.json();
+
+    if(data) {
+        const items = data.filter(item => !item.name.includes('v'));
+        for (const item of items) {
+            const href = `http://${item.name}.doc.prizm.site`;
+            tableBody.appendChild(createItem(href));
+        }
+    }
+
+    function createItem(href) {
+        const area = document.createElement('tr');
+        const statusTd = document.createElement('td');
+        const status = document.createElement('div');
+        const statusText = document.createElement('span');
+
+        status.classList.add("prizm-indicator")
+
+        statusTd.appendChild(status)
+        statusTd.appendChild(statusText)
+
+        area.appendChild(statusTd);
+
+
+        const linkTr = document.createElement('td');
+        area.appendChild(linkTr);
+
+        const link = document.createElement('a');
+
+        link.href = href;
+        link.innerText = href;
+        linkTr.appendChild(link);
+
+        const corsServer = "https://tall-dove-81.deno.dev/";
+        // const corsServer = "https://cors-anywhere.herokuapp.com/";
+        // need CORS
+        setTimeout(async () => {
+            const res = await fetch(corsServer+href);
+
+            statusText.innerText = res.status;
+
+            // status.style.color = "white";
+
+            switch (res.status) {
+                case 200:
+                    status.classList.add("prizm-indicator-success")
+                    // status.style.background = "green";
+                    break;
+
+                case 404:
+                    status.classList.add("prizm-indicator-danger")
+                    // status.style.background = "red";
+                    break;
+                default:
+                    // status.style.background = "yellow";
+                    // status.style.color = "black";
+                    status.classList.add("prizm-indicator-warning")
+                    break
+            }
+        },0);
+        return area;
+    }
+</script>
+</html>
